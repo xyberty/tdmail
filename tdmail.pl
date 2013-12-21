@@ -9,6 +9,7 @@
 ###
 
 #use strict;
+use encoding 'cp1251';
 
 use POSIX qw(strftime);
 use Net::FTP;
@@ -93,7 +94,7 @@ if ($config ne 'tdmail.conf') { log_this("Using alternative configuration: $conf
 # если задан параметр '-list' в командной строке (только список файлов)
 if (($listing) and ($listing == 1)) { log_this("We will get file listing only.\n"); }
 
-# если задан параметр '-nosignal' в командной строке (отключить опопвещение)
+# если задан параметр '-nosignal' в командной строке (отключить оповещение)
 if (($silent_mode) and ($silent_mode == 1)) { log_this("Notify function disabled.\n"); }
 
 # подключение к серверу
