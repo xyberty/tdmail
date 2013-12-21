@@ -1,0 +1,745 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="ru">
+
+<head>
+  <title>tdmail &laquo;summer in may&raquo; v0.3</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+  <meta name="keywords" content="tdmail, ftp, почта, казначейство, уфк, волгоградская область, волгоград, светлый яр, светлоярский" />
+  <meta name="description" content="tdmail - скрипт, предназначенный для получения, обработки и отправки почты Отделениями Управления Федерального казначейства по Волгоградской области через FTP-сервер" />
+  <link rel="stylesheet" type="text/css" href="tdmail.css" />
+</head>
+
+<body>
+
+<div id="header">
+  <h1>Treasury Department Mail Kit<br /><strong>"Summer in May"</strong></h1>
+  <p>&copy; 2007 pavel skvortsov</p>
+</div>
+
+<a name="top" />
+<div id="navigation">
+  <ul>
+    <li><a href="#configuration">Конфигурация</a></li>
+    <li><a href="#common">Общие сведения о работе программы</a></li>
+    <li><a href="#tdmail">tdmail.pl</a></li>
+    <!-- <li><a href="#tdmail_parse">tdmail_parse.pl</a></li>
+    <li><a href="#tdmail_send">tdmail_send.pl</a></li> -->
+    <li><a href="#additional">Дополнительно</a></li>
+    <li><a href="#thanks">Благодарности</a></li>
+    <li><a href="#contact-me">Контакт</a></li>
+    <li class="right"><a href="perlre.html">Регулярные выражения Perl</a></li>
+  </ul>
+</div>
+
+<br clear="all" />
+
+<div id="content">
+
+  <p>
+  <span class="definition"><strong>tdmail &laquo;Summer in May&raquo; v0.3</strong></span> &mdash; это новая версия
+  (ветка) Набора почтовых инструментов для Отделений Федерального казначейства, реализующая требования
+  &laquo;Положения о порядке осуществления электронного документооборота в Управлении Федерального
+  казначейства по Волгоградской области&raquo;, утвержденного приказом 
+  <acronym title="Управление Федерального казначейства">УФК</acronym> по Волгоградской области
+  от 28 апреля 2006 г. №112 (далее &mdash; Положение). Вторая часть названия &mdash; &laquo;Summer in May&raquo; 
+  (&laquo;Лето в мае&raquo;) &mdash; напоминание о том, что переход на работу по Положению в одном из Отделений
+  был произведен лишь в конце лета, а не в мае. :-) Почему &laquo;Лето в мае&raquo;, а не &laquo;Май летом&raquo; &mdash; 
+  вопрос, наверное, риторический&hellip; Возможно, мне именно такое звучание по вкусу. ;-)
+  </p>
+
+  <p>
+  За основу взят набор <strong>tdmail v0.02</strong>, которым можно было бы пользоваться,
+  руководствуясь <acronym title="&laquo;Положение о порядке передачи информации по электронной почте&raquo;,
+введенное в действие приказом руководителя УФК по Волгоградской области от 22.12.1999 г. №218">Положением
+  от 1999 года</acronym>.
+  </p>
+  
+  <p>
+  Для работы Вам потребуется интерпретатор языка <strong>Perl</strong>: для семейства
+  ОС MS Windows &mdash; ActiveState&reg; <a href="http://www.activestate.com/ActivePerl/" 
+  alt="ActiveState ActivePerl" title="ActiveState ActivePerl" target="_blank">ActivePerl</a>
+  (размер дистрибутива ActivePerl&nbsp;5.8.7.815 &mdash; 12,7 Мб).
+  В ОС Unix интерпретатор Perl встроенный.
+  </p>
+  
+  <p>
+  &laquo;Обмен&raquo; почтой происходит посредством FTP-сервера, поэтому используется
+  модуль <code>Net::FTP</code>. <u>Данная версия tdmail включает в себя всего один
+  скрипт</u>, выполняющий ряд функций, документацию, конфигурационный файл и 
+  примерный &laquo;кронтаб-файл&raquo; (далее&nbsp;&mdash; <span class="definition"><strong>кронтаб</strong></span>&nbsp;&mdash; управляющий
+  файл <a href="#additional-nncron" title="nnCron">nnCron</a>, &laquo;в котором находятся все необходимые программе данные о задаче:
+  время, события, команды и условия их выполнения&raquo;).
+  </p>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="configuration" />
+  <h2>Конфигурация</h2>
+
+  <div class="chapter">
+  
+    <div class="attention">
+      <span style="color: #f90;">Внимание:</span><br />В переменных, описывающих пути, обязательно
+      указывайте два обратных &laquo;слэша&raquo; (\\) вместо одного (\)!<br />
+      Отсутствие закрывающих &laquo;слэшей&raquo; обязательно!
+    </div>
+
+    <a name="configuration-conf" />
+    <h3>tdmail.conf</h3>
+
+    <table width="90%" cellspacing="1px" cellpadding="5px" border="0">
+      <thead>
+        <tr>
+          <th width="25%">Переменая</th>
+          <th width="75%">Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">
+            $ofk
+          </td>
+          <td class="desc">
+            Номер отделения
+            <div><strong>Пример:</strong> <code>$ofk = "26";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $host
+          </td>
+          <td class="desc">
+            Доступ к FTP: хост (IP-адрес или имя сервера)
+            <div><strong>Пример:</strong> <code>$host = "10.29.1.2";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $userlogin
+          </td>
+          <td class="desc">
+            Доступ к FTP: логин
+            <div><strong>Пример:</strong> <code>$userlogin = "ofk26";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $userpassw
+          </td>
+          <td class="desc">
+            Доступ к FTP: пароль
+            <div><strong>Пример:</strong> <code>$userpassw = "aabbCCdD";</code></td>
+        </tr>
+        <!-- <tr>
+          <td class="var">
+            $arc_dir
+            <div>???</div>
+          </td>
+          <td class="desc">
+            Путь к директории, содержащей архиваторы
+            <div><strong>Пример:</strong> <code>$arc_dir = "c:\\arc\\arj32";</code></div>
+          </td>
+        </tr> -->
+        <tr>
+          <td class="var">
+            $mail_dir
+          </td>
+          <td class="desc">
+            Директория-зеркало, содержащая точную копию структуры директорий ftp-сервера
+            <div><strong>Пример:</strong> <code>$mail_dir = "d:\\mail_ftp";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $root_dir
+          </td>
+          <td class="desc">
+            Директория или сетевой диск, где располагаются директории с почтой
+            (<strong>архив</strong>)
+            <div><strong>Пример:</strong> <code>$root_dir = "d:\\mail_arc";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $report_dir
+          </td>
+          <td class="desc">
+            Директория для временного хранения квитков из \outgoing о получении Управлением
+            отосланных им писем и отчетов (<code>*.r&lt;ofk&gt;</code>, где <code>&lt;ofk&gt;</code> &mdash;
+            номер отделения ФК)
+            <div><strong>Пример:</strong> <code>$report_dir = "$mail_dir\\.reports";</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $bank_dir
+          </td>
+          <td class="desc">
+            Директория для хранения входящих обновлений &laquo;Справочника БИК РФ&raquo;
+            (обычно в поддиректории &laquo;архива&raquo;)
+            <div><strong>Пример:</strong> <code>$bank_dir = "$root_dir\\bank";</code></div>
+          </td>
+        </tr>
+<!--         <tr>
+          <td class="var">
+            $nrkc_dir
+          </td>
+          <td class="desc">
+            Директория, куда должны помещаться обновления Cправочника банков БИК РФ (программа N_RKC)
+            <div><strong>Пример:</strong> <code>$nrkc_dir = "\\\\CKS\\d\\N_RKC\\izm";</code></div>
+          </td>
+        </tr> -->
+<!--        <tr>
+          <td class="var">
+            
+            <div>tdmail_parse.pl</div>
+          </td>
+          <td class="desc">
+            
+            <div><strong>Пример:</strong> <code></code></div>
+          </td>
+        </tr>-->
+      </tbody>
+    </table>
+ 
+    <a name="configuration-pl" />
+    <h3>tdmail.pl</h3>
+
+    <table width="90%" cellspacing="1px" cellpadding="5" border="0">
+      <thead>
+        <tr>
+          <th width="25%">Переменая</th>
+          <th width="75%">Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">
+            $ascii_mask
+          </td>
+          <td class="desc">
+            Маски <strong>текстовых</strong> файлов (<a href="perlre.html" 
+            alt="Perl Regular expressions &mdash; Регулярные выражения Perl"
+            title="Регулярные выражения Perl" target="_blank">регулярные выражения</a>)
+            <div><strong>Пример:</strong> <code>$ascii_mask = qr/(\.txt)|(\.r$ofk)|(\.s$ofk)|(pismo)/is;</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            %replace
+          </td>
+          <td class="desc">
+            Переназначение входящих/исходящих путей &mdash; более удобное именование локальных
+            директорий в &laquo;архиве&raquo;
+            <div><strong>Пример:</strong> <code>%replace = (
+              'es_out' => 'es_in',
+              'outgoing' => 'pm_in',
+              'rki_out' => 'rki_in',
+
+              'es_in' => 'es_out',
+              'incoming' => 'pm_out',
+              'rki_in' => 'rki_out'
+              );</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            @remotedirs_in
+          </td>
+          <td class="desc">
+            Маски имен директорий, которые нужно пропускать, при выводе списка файлов и
+            скачивании (<a href="perlre.html" alt="Perl Regular expressions &mdash; Регулярные выражения Perl"
+            title="Регулярные выражения Perl" target="_blank">регулярные выражения</a>)
+            <div><strong>Пример:</strong> <code>@remotedirs_in = grep (!/(^in)|(\_in)|(avp)|(drweb)/, @remotedirs);</code></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            @remotedirs_out
+          </td>
+          <td class="desc">
+            Маски имен директорий, которые нужно пропускать, отправлять файлы из которых не нужно
+            (<a href="perlre.html" alt="Perl Regular expressions &mdash; Регулярные выражения Perl"
+            title="Регулярные выражения Perl" target="_blank">регулярные выражения</a>)
+            <div><strong>Пример:</strong> <code>@remotedirs_out = grep (!/(^out)|(\_out)|(avp)|(drweb)|(bank)/, @remotedirs);</code></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <a name="configuration-pl-signal" />
+    <p>
+    <strong>Оповещение:</strong>
+    </p>
+    <table width="90%" cellspacing="1px" cellpadding="5" border="0">
+      <thead>
+        <tr>
+          <th width="25%">Переменая</th>
+          <th width="75%">Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">
+            $signal_string
+          </td>
+          <td class="desc">
+            Оповещение (сигнализация): Текстовая строка оповещения
+            (см. <a href="#tdmail-history" title="История изменений">История изменений</a>)
+            <div><strong>Пример:</strong> <code>$signal_string = "В директории \"T:\\$localdir\" появились новые файлы!";</code></div>
+            где T: &mdash; сетевой диск <code>$mail_dir</code>
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            $signal_pc
+          </td>
+          <td class="desc">
+            Оповещение: имя рабочей станции в сети, на которую необходимо отсылать оповещения
+            (см. <a href="#tdmail-history" title="История изменений">История изменений</a>)
+            <div><strong>Пример:</strong> <code>$signal_pc = "reception";</code></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="common" />
+  <h2>Общие сведения о работе программы</h2>
+
+  <div class="chapter">
+    <p>
+    После внесения изменений в <a href="#configuration">конфигурационный файл</a>, структура
+    директорий должна принимать следующий вид:
+    </p>
+    <pre>$mail_dir
+  \avp
+  \bank
+  \drweb
+  \es_in
+  \es_out
+  \incoming
+  \outgoing
+  \rki_in
+  \rki_out
+  \sed_out
+    \o</pre>
+    <a name="common-paths" />
+    <p>
+    Директории, маски которых указаны в переменной-массиве <code>@remotedirs_in</code>
+    при получении файлов будут пропускаться; директории из <code>@remotedirs_out</code>
+    будут пропускаться при отправке файлов! <strong>По умолчанию почтовый обмен производится
+    в директориях \es_in, \es_out, \incoming, \outgoing, \rki_in, \rki_out</strong>
+    (в будущих версиях планируется ликвидировать данную недоработку и станет возможным
+    обновление антивирусных баз, справочника БИК РФ, репликаций ППО СЭД).
+    </p>
+    <p>
+    Т.о., реализуется зеркало FTP-сервера УФК. Исходя из требований Положения, здесь же можно
+    <strong>распределить доступ</strong> для подразделений в Отделении (см. п.п. 1.7, 5.1, 5.2 Положения).
+    Пример: <i>\es_in, \es_out &mdash; бухгалтерия; \incoming, \outgoing &mdash; приемная;
+    \rki_in, \rki_out &mdash; расходы</i>. Распределение доступа в ряде случаев предостерегает
+    ответственного за прием/передачу электронной почты и СЭД от потери информации. При работе
+    скрипта <code class="file">tdmail.pl</code> такая опасность практически сводится к нулю,
+    т.к. сразу после получения файлов они помещаются в директорию &laquo;архива&raquo;
+    с текущей датой (например, из $mail_dir\es_out\ в $root_dir\es_in\20060920\,
+    если текущий день &mdash; 20.09.2006).
+    </p>
+    <p>
+    Исходя из того, как организована замена путей (хэш <code>%replace</code> в <code class="file">tdmail.pl</code>),
+    структура директорий &laquo;архива&raquo; может быть следующей
+    (см. <a href="#common-paths" title="О директориях, учавствующих в почтовом обмене">второй абзац</a> данного раздела):
+    </p>
+    <pre>$root_dir
+  \bank
+  \es_in
+  \es_out
+  \pm_in
+  \pm_out
+  \rki_in
+  \rki_out
+  \sed
+    \o</pre>
+    <p>
+    * Здесь в директориях \bank и \sed запись файлов производится вручную
+    (см. <a href="#common-paths" title="О директориях, учавствующих в почтовом обмене">второй абзац</a> данного раздела).
+    </p>
+
+      <a name="common-dirs" />
+      <h3>Назначение директорий</h3>
+
+      <table width="70%" cellspacing="1px" cellpadding="5" border="0">
+        <thead>
+          <tr>
+            <th width="25%">Директория</th>
+            <th width="75%">Назначение</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="var">\avp</td>
+            <td class="desc">Обновления антивирусных баз &laquo;Антивируса Касперского&raquo;</td>
+          </tr>
+          <tr>
+            <td class="var">\bank</td>
+            <td class="desc">Обновления Справочника БИК РФ</td>
+          </tr>
+          <tr>
+            <td class="var">\drweb</td>
+            <td class="desc">Обновления антивирусных баз &laquo;Dr.Web&raquo;</td>
+          </tr>
+          <tr>
+            <td class="var">\es_in</td>
+            <td class="desc">Исходящие рейсы (ЕКС)</td>
+          </tr>
+          <tr>
+            <td class="var">\es_out</td>
+            <td class="desc">Входящие выписки, квитки и квитанции обработки рейсов</td>
+          </tr>
+          <tr>
+            <td class="var">\incoming</td>
+            <td class="desc">Исходящая почта общего характера, отчеты, заявки и т.д.</td>
+          </tr>
+          <tr>
+            <td class="var">\outgoing</td>
+            <td class="desc">Входящая почта общего характера, доходы</td>
+          </tr>
+          <tr>
+            <td class="var">\rki_in</td>
+            <td class="desc">Исходящие квитанции, извещения об обработк</td>
+          </tr>
+          <tr>
+            <td class="var">\rki_out</td>
+            <td class="desc">Входящие расходные расписания, реестры на финансирование</td>
+          </tr>
+          <tr>
+            <td class="var">\sed_out</td>
+            <td class="desc">Входящие репликации ППО СЭД</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Порядок работы</h3>
+
+      <p>
+      Итак, файлы с FTP-сервера помещаются в одноименные поддиректории на локальном ПК Отделения,
+      находящиеся в директории, указанной в переменной <code>$mail_dir</code> (см. <code class="file">tdmail.conf</code>); отправляются
+      файлы тоже из этой директории. <strong>При получении/отправке файлов они помещаются в &laquo;архив&raquo;
+      (директория, указанная в переменной <code>$root_dir</code> &mdash; инвертированная структура FTP-сервера
+      для удобства восприятия уже локальной информации).</strong>
+      </p>
+      <p>
+      При получении
+      почты в один из &laquo;ящиков&raquo; (\es_out, \outgoing, \rki_out), на рабочие
+      станции пользователей в сети или пользователям (переменная <code>$signal_pc</code>),
+      ответственным за определенный &laquo;ящик&raquo;, будет отправлено сообщение с текстом,
+      определенным в переменной <code>$signal_string</code>. Опопвещение отключается,
+      если в командной строке встречается параметр <code>-nosignal</code>.
+      </p>
+      <p>
+      После <a href="#common-workorder-processing">обработки</a> <strong>входящие</strong>
+      файлы из поддиректорий директории, определенной в переменной <code>$mail_dir</code>,
+      необходимо удалять! См. <a href="#common-dirs">Назначение директорий</a>.
+      </p>
+      <p>
+      <strong>Исходящие</strong> файлы помещаются ответственными подразделений в директории с
+      исходящей почтой без дальнейших манипуляций. См. <a href="#common-dirs">Назначение директорий</a>.
+      </p>
+      <a name="common-workorder-processing" />
+      <p>
+      Под &laquo;обработкой&raquo; файлов подразумевается извлечение из архивов,
+      распечатка (почта общего характера), проверка подлинности ЭЦП, копирование
+      в директории для загрузки в <acronym title="Прикладное программное обеспечение">ППО</acronym>.
+      </p>
+
+      </p>
+      <p>
+
+    </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="tdmail" />
+  <h2>tdmail.pl</h2>
+
+  <div class="chapter">
+    
+    <h3>Параметры командной строки</h3>
+
+    <table width="90%" cellspacing="1px" cellpadding="5" border="0">
+      <thead>
+        <tr>
+          <th width="25%">Параметр</th>
+          <th width="75%">Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="var">
+            -h | -help
+          </td>
+          <td class="desc">
+            Информация
+          </td>
+        </tr>
+          <td class="var">
+            -list
+          </td>
+          <td class="desc">
+            Показывается содержимое директорий на FTP-сервере, но <strong>файлы не скачиваются</strong>;
+            отправка происходит в обычном порядке
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            -nodel
+          </td>
+          <td class="desc">
+            Файлы с FTP-сервера не удаляются
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            -nosignal
+          </td>
+          <td class="desc">
+            Не оповещать по сети при получении новой почты
+          </td>
+        </tr>
+        <tr>
+          <td class="var">
+            -c &lt;имя_файла&gt;
+          </td>
+          <td class="desc">
+            Использование альтернативного конфигурационного файла
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+    Использование параметра командной строки <code>-nodel</code> может понадобиться 
+    <strong>на этапе внедрения</strong> скрипта, чтобы предостеречь себя от потери почты.
+    </p>
+    <p>
+    Параметр <code>-nosignal</code> так же может понадобиться на этапе внедрения,
+    когда ПК или пользователи, которым нужно отправлять <a href="#configuration-pl-signal">оповещения</a>,
+    не определены.
+    </p>
+
+    <a name="tdmail-history" />
+    <h3>История изменений</h3>
+    
+    <iframe id="tdmail_history" align="center" frameborder="0" marginheight="0" marginwidth="5" name="tdmail.history" scrolling="auto" src="HISTORY.txt"></iframe>
+
+  </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="additional" />
+  <h2>Дополнительно</h2>
+  
+  <div class="chapter">
+<!--     <h3>makedirs.pl</h3>
+    <p><span class="definition">makedirs.pl</span> &mdash; простой скрипт, создающий директории
+    с именами &laquo;01&raquo; .. &laquo;20&raquo; (номера отделов УФК). Расположение директорий
+    (корневую директорию) необходимо изменить в <u>5-й строке</u>!</p> -->
+    
+    <p>
+    В целях организации удобного взаимодействия с &laquo;зеркалом&raquo; FTP, на
+    ПК, где будет производиться запуск tdmail, необходимо создать сетевой ресурс
+    (например, <code>mail_ftp</code> на <code>\\Server</code>).
+    Для начала работы с &laquo;зеркалом&raquo; FTP на каждом пользовательском ПК
+    необходимо подключить сетевой диск (например, T: &mdash; <code>\\Server\mail_ftp</code>).
+    </p>
+    <p>
+    Использовать tdmail лучше всего, периодически запуская скрипт планировщиком.
+    Командная строка может выглядеть так:
+    <code>perl&nbsp;c:\automation\tdmail_may\tdmail.pl</code>. Если при установке
+    ActivePerl Вы разрешите инсталлятору зарегистрировать расширение Perl (*.pl)
+    в системе, строка запуска может упроститься:
+    <code>c:\automation\tdmail_may\tdmail.pl</code>.
+    </p>
+
+    <a name="additional-nncron" />
+    <h3>nnCron</h3>
+
+    <p>
+    WWW: <a href="http://www.nncron.ru/" alt="nnSoft" title="nnSoft: nnCron, nnBackup"
+    target="_blank">http://www.nncron.ru/</a>.
+    </p>
+
+    <p>
+    Для внедрения tdmail предлагаю воспользоваться мощнейшим планировщиком
+    <strong>nnCron</strong>. Лучше всего создать отдельный кронтаб,
+    куда поместить ниже следующие задачи.
+    </p>
+
+    <p>
+    Предварительно пути в задачах необходимо изменить на Ваши!
+    </p>
+
+    <p>
+    <strong>Задача &laquo;ftpmail&raquo;</strong>. Просто запускает скрипт <code class="file">tdmail.pl</code>
+    каждые пять минут (как в УФК). Периодичность можно уменьшить до 1 минуты,
+    или увеличить.
+    </p>
+<pre class="cron">#( ftpmail
+AsLoggedUser
+Time: */5  * * * * *
+Action:
+StartIn: "c:\automation\tdmail-may\" 
+ShowNormal   NormalPriority
+START-APP: C:\Perl\bin\perl.exe c:\automation\tdmail-may\tdmail.pl
+)#</pre>
+
+    <p>
+    <strong>Задача &laquo;purge_tdmail_log&raquo;</strong>. Т.к. скрипт <code class="file">tdmail.pl</code>
+    создает ежедневно новый лог-файл (см. <code class="file">HISTORY.txt</code> или
+    <a href="#tdmail-history" title="История изменений">История изменений</a>
+    за 2006/09/19), необходимо будет эти файлы удалять за ненадобностью, например,
+    спустя неделю (срок можно изменить в последнем параметре команды
+    <code>PURGE-OLD:</code>). Запуск происходит по пятницам в 12:00.
+    </p>
+<pre class="cron">#( purge_tdmail_log
+Time: 0 12 * * 5 *
+Action: PURGE-OLD: "c:\automation\tdmail-may\log\*.log" 7
+)#</pre>
+
+    <p>
+    Чтобы своевременно быть уведомленным в получении почты (файлов), можно
+    воспользоваться следующими задачами. Проверяется наличие файлов <code>*.arj</code>,
+    т.к. почта запаковывается архиватором ARJ (см. п.п. 2.11 Положения).
+    Пользователям различных подразделений (направлений) можно добавить задачи,
+    которые необходимы только им:
+    </p>
+
+    <pre class="cron">#( mail_spy_for_es
+AsLoggedUser
+: MailPath S" T:\es_out"
+Time: */5 * * * * *
+Action:
+FILE-EXIST: "%MailPath%\*.arj"
+IF  ftpmail_beep RUN
+    MSG: "Новые файлы в %MailPath%!" 
+THEN
+)#</pre>
+    <pre class="cron">#( mail_spy_for_pm
+AsLoggedUser
+: MailPath S" T:\outgoing"
+Time: */5 * * * * *
+Action:
+FILE-EXIST: "%MailPath%\*.arj"
+IF  ftpmail_beep RUN
+    MSG: "Новые файлы в %MailPath%!" 
+THEN
+)#</pre>
+    <pre class="cron">#( mail_spy_for_rki
+AsLoggedUser
+: MailPath S" T:\rki_out"
+Time: */5 * * * * *
+Action:
+FILE-EXIST: "%MailPath%\*.*"
+IF  ftpmail_beep RUN
+    MSG: "Новые файлы в %MailPath%!" 
+THEN
+)#</pre>
+
+    <p>
+    Если же необходимо отслеживать <strong>все</strong> директории с входящими
+    файлами, необходимо добавить все три задачи в кронтаб. Можно также объединить
+    задачи <strong>ftpmail</strong> и <strong>mail_spy_for_*</strong>, чтобы
+    скачивание и проверка на наличие новых файлов делались последовательно
+    практически в одно время.
+    </p>
+    <p>
+    У меня, например, трудится задача <strong>&laquo;mail_ufk_spy&raquo;</strong>,
+    которая присылает мне сообщения о входящих файлах
+    (мне не приходят опопвещения о новой почте в ходе работы <strong>tdmail</strong>!).
+    Она запускается от имени пользователя &laquo;service-agent&raquo;, у которого
+    права администратора в домене. &laquo;admin&raquo; (параметр команды 'net send') &mdash;
+    имя компьютера.
+    Нужна она мне на случай отсутствия ответственного за прием почты в Отделении.
+    </p>
+
+    <pre class="cron">#( mail_ufk_spy
+User: "service-agent" SecPassword: "grq5hpC9fbV=" Domain: "ofk26" LogonInteractive
+Time: */10 8-17 * * * *
+Action:
+FILE-EXIST: "T:\rki_out\*.1??"
+IF  pee-beep RUN
+\    MSG: "%hh%:%mm%%CRLF%УФК: Расходные расписания!" 
+    START-APP: "net send admin УФК: Расходные расписания!"
+THEN
+FILE-EXIST: "T:\outgoing\*.arj"
+IF  pee-beep RUN
+\    MSG: "%hh%:%mm%%CRLF%УФК: Почта!" 
+    START-APP: "net send admin УФК: Почта!"
+THEN
+)#</pre>
+
+    <p>
+    &laquo;Пищалка&raquo;, используемая в задачах:
+    </p>
+
+    <pre class="cron">#( ftpmail_beep
+NoActive
+Action:
+500 2000 DO 
+50 I BEEP I 15 / NEGATE
++LOOP
+)#</pre>
+
+  </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="thanks" />
+  <h2>Благодарности</h2>
+  
+  <div class="chapter">
+    <ul>
+      <li><em>Денис А. Грунтовский</em> &nbsp;(<a href="http://volgograd.roskazna.ru/" title="Сайт УФК по Волгоградской области">УФК по Волгоградской области</a>, 2900) &mdash; основополагающая идея &laquo;зеркала&raquo; FTP;</li>
+      <li><em>Олег В. Торчик</em> &nbsp;(Отделение по Котельниковскому району <a href="http://volgograd.roskazna.ru/" title="Сайт УФК по Волгоградской области">УФК по Волгоградской области</a>, 2913).</li>
+    </ul>
+  </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+  <a name="contact-me" />
+  <h2>Контактная информация</h2>
+  
+  <div class="chapter">
+    <p>
+    Личная информация:
+    </p>
+    <ul title="Личная информация">
+      <li>Имя: Павел А. Скворцов</li>
+      <li>E-mail: <a href="mailto:pavel.skvortsov@gmail.com?subject=tdmail">pavel.skvortsov @ gmail.com</a></li>
+      <li>Fidonet: 2:5055/233</li>
+    </ul>
+    
+    <p>
+    Место работы:
+    </p>
+    <ul title="Место работы">
+      <li>Наименование ТОФК: Отделение по Светлоярскому району <a href="http://volgograd.roskazna.ru/" title="Сайт УФК по Волгоградской области">УФК по Волгоградской области</a>, 2926</li>
+      <li>Должность: Старший специалист 2 разряда</li>
+    </ul>
+  </div>
+
+  <p class="tophref"><a href="#top">в начало</a></p>
+
+</div>
+
+<div id="footer">
+  <h1>Treasury Department Mail Kit<br /><strong>"Summer in May"</strong></h1>
+  <p>&copy; 2007 pavel skvortsov</p>
+</div>
+
+
+</body>
+
+</html>

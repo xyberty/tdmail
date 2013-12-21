@@ -1,0 +1,36 @@
+
+#( ftpmail_beep
+NoActive
+Action:
+500 2000 DO 
+50 I BEEP I 15 / NEGATE
++LOOP
+)#
+
+# === tdmail automation
+
+#( ftpmail
+AsLoggedUser
+Time: */5  * * * * *
+Action:
+StartIn: "c:\automation\tdmail-may\" 
+ShowNormal   NormalPriority
+START-APP: C:\Perl\bin\perl.exe c:\automation\tdmail-may\tdmail.pl
+)#
+
+#( mail_spy_for_pm
+AsLoggedUser
+: MailPath S" T:\outgoing"
+Time: */5 * * * * *
+Action:
+FILE-EXIST: "%MailPath%\*.arj"
+IF  ftpmail_beep RUN
+    MSG: "Новые файлы в %MailPath%!" 
+THEN
+)#
+
+#( purge_tdmail_log
+Time: 0 12 * * 5 *
+Action: PURGE-OLD: "c:\automation\tdmail-may\log\*.log" 7
+)#
+

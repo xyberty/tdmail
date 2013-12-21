@@ -1,0 +1,367 @@
+#!/usr/bin/perl -w
+
+###
+# tdmail_receive.pl
+# version: 0.3
+###
+# pavel skvortsov <pavel.skvortsov@gmail.com>, ufk29.ofk26
+# 2006
+###
+
+use POSIX qw(strftime);
+use Net::FTP;
+use File::Basename;
+use File::Copy;         # copy(), move()
+use File::Path;         # mkpath(), rmtree()
+use File::stat;         # stat()
+
+my $config = "tdmail.conf";
+my $ai = 0;
+
+foreach (@ARGV) {
+  if ($ARGV[$ai] eq "-c") {
+    $config =  "$ARGV[$ai+1]"; last;
+  }
+  $ai++;
+} 
+require "$config";
+
+# верси€ программы
+$VER = "0.3b";
+$DATE = "16.08.2006";
+$TITLE = "summer in may";
+
+# параметры командной строки:
+foreach (@ARGV) {
+  if ($_ eq '-h') { out("version"); out("help"); }
+  if ($_ eq '-list') { $listing = 1; }
+}
+
+# маски файлов, которые необходимо считать текстовыми (regexp)
+$ascii_mask = qr/(\.txt)|(\.v$ofk)|(\.i$ofk)|(\.r$ofk)|(\.s$ofk)|(pismo)/is;
+
+%replace = (
+  'es_out' => 'es_in',
+  'outgoing' => 'pm_in',
+  'rki_out' => 'rki_in',
+  'sed_out' => 'sed',
+  'sed_out\\o' => 'sed\\o',
+
+  'es_in' => 'es_out',
+  'incoming' => 'pm_out',
+  'rki_in' => 'rki_out'
+);
+
+# начало работы
+print "\n----------\n";
+datetime(0); out("version"); print " started!\n";
+
+# если задан параметр '-list' в командной строке
+if ($listing == 1) { datetime(0); print "We will get file listing only.\n"; }
+
+# подключение к серверу
+ftp_connect();
+
+$, = "\n";  # разделитель при выводе массива на экран
+
+#print "\n";
+# получение списка директорий на сервере в массив
+datetime(1); print "  Getting directory listing...\n";
+@remotedirs = $ftp->ls(); # or die "! Cannot get a directory listing ", $ftp->message;
+#~ print $ftp->message;
+
+# удаление ненужных директорий из списка (исход€ща€ почта, антивирусы)
+@remotedirs_clean = grep (!/(^in)|(\_in)|(avp)|(drweb)|(bank)/, @remotedirs);
+#~ print $#remotedirs_clean+1 . " of them we need!\n\n";
+
+# получение файлов!
+for ($i = 0; $#remotedirs_clean; $i++) {
+  my $dir = $remotedirs_clean[$i]; my $nothing = 0;
+  local $, = ", ";
+  if ($dir) {
+    $ftp->cwd($dir);
+    print $ftp->pwd() . "\n";
+    print $ftp->ls(); my @dirfiles = $ftp->ls();
+    #~ get_files(@dirfiles);
+    #~ get_files(0);
+    ##~ if ($dir eq "bank") {
+    ##~   get_bank_files();
+    ##~ } else {
+      #~ if ($ARGV[0] ne "-list") { get_files(1,$dir); }
+      if ($ARGV[0] ne "-list") { 
+#        if ($dir eq "sed_out") {
+#          #~ my @sedfiles = $ftp->ls();
+#          my $seddir = $dir . "\/o";
+#          $ftp->cwd("o");
+#          get_files(1,$seddir);
+#          $ftp->cdup(); 
+#        }
+        get_files(1,$dir); 
+      }
+    ##~ }
+    print "\n";
+    $ftp->cdup();
+  } else { last; }
+}
+
+# отключение от сервера
+ftp_disconnect();
+
+###
+### копирование полученных файлов в архив ($root_dir)
+###
+
+#~ my @localdirs = get_dir_contents($mail_dir);
+#print @localdirs;
+
+#print %mask_in;
+#print @remotedirs_clean;
+chdir("$mail_dir");
+foreach my $localdir (@remotedirs_clean) {
+  print "* $localdir\n";
+  #~ foreach my $mask (%mask_in) {
+    #~ my @files = get_dir_contents($mask_in{$mask});
+#    if ($localdir eq "sed_out") {
+#      $localdir = $localdir . "\\o";
+#      my @files = get_dir_contents($localdir);
+#      print "$localdir\n";
+#    } else {
+      my @files = get_dir_contents($localdir);
+#    }
+    print @files; print "\n";
+    if ($#files != -1) {
+      chdir("$localdir");
+      #~ my $path = "$root_dir\\$mask\\$today_dir";
+      #~ if ($localdir eq "sed_out") {
+      #~ if ($localdir_) {
+        #~ my $path = "$root_dir\\$replace{$localdir_}\\$today_dir";
+      #~ } else {
+        my $path = "$root_dir\\$replace{$localdir}\\$today_dir";
+      #~ }
+      #eval { mkpath("$root_dir\\$mask_in{$mask}\\$today_dir") };
+      if (!-d $path) { mkpath($path); }
+      foreach my $file (@files) {
+        copy("$file", "$path\\$file") or die "! Copy failed: $!";
+        datetime(1); print "  $mail_dir\\$localdir\\$file -> $path\\$file\n";
+      }
+      chdir("..");
+    }
+  #~ }
+}
+
+#
+
+@remotedirs_clean = grep (!/(^out)|(\_out)|(avp)|(drweb)|(bank)/, @remotedirs);
+
+ftp_connect();
+
+print @remotedirs_clean;
+print @remotedirs;
+chdir("$mail_dir");
+foreach my $localdir (@remotedirs_clean) {
+  print "* $localdir\n";
+  #~ foreach my $mask (%mask_in) {
+    #~ my @files = get_dir_contents($mask_in{$mask});
+    my @files = get_dir_contents($localdir);
+    print @files; print "\n";
+    if ($#files != -1) {
+      chdir("$localdir");
+      # перемещение в директорию дл€ загрузки
+      $ftp->cwd($remotedir);
+
+      my $path = "$root_dir\\$replace{$localdir}\\$today_dir";
+      if (!-d $path) { mkpath($path); }
+
+      foreach my $file (@files) {
+        my $sb = stat($file);
+        my $filesize = round($sb->size);
+        datetime(1); print "  $mail_dir\\$localdir\\$file -> $host\\$localdir\\$file ($filesize KB)\n";
+        set_transfer_mode($file);
+        $ftp->put("$file", "//$localdir//$file") or die "! Cannot upload file: $!",        $ftp->message;
+
+        datetime(1); print "  $mail_dir\\$localdir\\$file -> $path\\$file\n";
+        move("$file", "$path\\$file") or die "! Copy failed: $!";
+      }
+      $ftp->cdup();
+      chdir("..");
+    }
+  #~ }
+}
+
+ftp_disconnect();
+
+datetime(0); out("version"); print " stopped!\n";
+
+exit 0;
+
+# ====================================
+# функции и процедуры
+# ====================================
+
+sub ftp_connect {
+  datetime(1); print "  Starting FTP connection to $host...\n";
+  $ftp = Net::FTP->new($host, Debug => 0)
+      or die "! Cannot connect to $host: $@";
+  #print $ftp->message;
+  
+  $ftp->login($userlogin, $userpassw)
+      or die "! Cannot login ", $ftp->message;
+  print $ftp->message;
+}
+
+sub ftp_disconnect {
+  datetime(1); print "  Disconnecting...\n";
+  $ftp->quit();
+  print $ftp->message;
+  #datetime(1); print "  Logout.\n";
+}
+
+# получение ќЅЌќ¬Ћ≈ЌЌќ√ќ справочника банков
+sub get_bank_files {
+  my @files = $ftp->ls();
+  my $filesize_ftp = $ftp->size($files[0]);     # по размеру
+
+  my @dirs = get_dir_contents($bank_dir);
+
+  my $thisdir = "$bank_dir\\$dirs[$#dirs]";
+  my @file = grep(/.*\.dbf/i, get_dir_contents($thisdir));
+  if (@file == 0) {
+    $thisdir = "$bank_dir\\$dirs[$#dirs-1]";
+    my @file = grep(/.*\.dbf/i, get_dir_contents($thisdir));
+  }
+  
+  my $filename = "$thisdir\\$file[0]";
+  
+  $filestat = stat($filename);                  # по размеру
+  $div = $filesize_ftp - $filestat->size; 
+  if ($div != 0) {
+    print "\n- File size difference of files is $div bytes. So:\n";
+    if ($ARGV[0] ne "-list") { get_files(0); }
+  }
+}
+
+sub get_dir_contents {
+  $dir = shift;
+  opendir(DIR, $dir) or die "! Cannot open dir $dir: $!";
+  @dirlist = grep(!/^\.+/, readdir(DIR));   # получаем список директорий
+  #~ @dirlist = grep { !/^\./ && -d "$_" } readdir(DIR);
+  closedir(DIR);
+  return @dirlist;
+}
+
+sub put_these_files {
+  my $mask = shift;
+  chdir($mail_dir) or die "! Cannot change dir to $mail_dir: $0";
+  datetime(1); print "  Processing mask: $mask\n";   # ! отладка
+
+  foreach $file (@dirlist) {
+    if ($mask eq "pm") {
+      if ($file =~ /(($tDD$tMM)pm\d\d\.[rs]($ofk))|(14\d\d..($ofk)\.arj)|(\d{4}\w\D\d\d\.arj)/i) {
+        copy($file, "$pm_dir\\$today_dir\\") or die "! Copy failed: $!";
+        datetime(1); print "  File $file copied to $pm_dir\\$today_dir\\\n";
+        if ($file =~ /(.+\.arj)/i) {
+          datetime(1); print "  Unpacking $file for further manual processing (arj32)...\n";
+          system("arj32 e -+ -v -y -p1 -- $file $temp_dir\\$now_dir\\");
+        } elsif ($file =~ /.+\.r\d\d/i) {   # перемещение квитков о получении файла ”правлением
+          move($file, "$temp_dir\\$now_dir\\");
+        }
+        unlink $file;
+      }
+    } elsif ($mask eq "es") {
+      if ($file =~ /(($tDD$tMM)es\d\d\.[rs]($ofk))|(($ofk)\d\d\d\d\d\d\.arj)/i) {
+        copy($file, "$es_dir\\$today_dir\\") or die "! Copy failed: $!";
+        datetime(1); print "  File $file copied to $es_dir\\$today_dir\\\n";
+        if ($file =~ /.+\.arj/i) {
+          datetime(1); print "  Unpacking $file for further manual processing (arj32)...\n";
+          system("arj32 e -+ -v -y -p1 -- $file $temp_dir\\$now_dir\\");
+        } elsif ($file =~ /.+\.r\d\d/i) {   # перемещение квитков о получении файла ”правлением
+          move($file, "$temp_dir\\$now_dir\\");
+        }
+        unlink $file;
+      }
+    } elsif ($mask eq "rk") {
+      if ($file =~ /(($tDD$tMM)rk\d\d\.[rs]($ofk))|(($ofk)29\d\d($tDD)\.($tMM)\d)/i) {
+        copy($file, "$rki_dir\\$today_dir\\") or die "! Copy failed: $!";
+        datetime(1); print "  File $file copied to $rki_dir\\$today_dir\\\n";
+        move($file, "$temp_dir\\$now_dir\\");
+      }
+    } elsif ($mask eq "bank") {
+      if ($file =~ /(pismo)|(\d{4}_\d\dn\.dbf)/i) {
+        copy($file, "$bank_dir\\$today_dir\\") or die "! Copy failed: $!";
+        datetime(1); print "  File $file copied to $bank_dir\\$today_dir\\\n";
+        # перемещение нового справочника в директорию программы
+        move($file, "$nrkc_dir\\") or die "! Cannot move file $file: $!";
+      }
+    } else { datetime(1); print "  What did you want to say? ;-)\n"; last; }
+  }
+}
+
+
+# получение (скачивание) файлов из указанной до вызова функции директории на ftp
+# ($ftp->cwd($dir))
+#   параметр 1 - удал€ть ли файлы с сервера (0, 1);
+#   параметр 2 - директори€ на сервере и локальна€.
+sub get_files {
+  my $delete_file = shift;
+  my $_dir = shift;
+  my @files = $ftp->ls();
+  print "\n";
+  foreach $file (@files) {
+    $filesize = round($ftp->size($file));
+    datetime(1); print "  Getting file $file ($filesize KB) to $mail_dir\\$_dir\n";
+    set_transfer_mode($file);
+    $ftp->get($file, "$mail_dir\\$_dir\\$file");
+    $ftp->message;
+    if ($delete_file == 1) {    # если в качестве параметра при вызове функции передана "1",
+      $ftp->delete($file);      # файлы с ftp удал€ютс€; иначе - нет.
+      $ftp->message;
+    }
+  }
+}
+
+# установка режима передачи файлов в зависимости от расширени€
+# (binary, ascii)
+sub set_transfer_mode {
+  $ifile = shift;
+    if ($ifile =~ $ascii_mask) {
+      $ftp->ascii; #print "ascii\n";
+    } else {
+      $ftp->binary; #print "binary\n";
+    }
+}
+
+# преобразование: Ѕайты -> кЅайты; округление до дес€тых
+sub round {
+  $number = shift;
+  $number = $number / 1024;
+  $rounded = sprintf("%.1f", $number);
+}
+
+sub version_date_grep {
+  ($DD, $MM, $YY) = split(/\./, $DATE);
+  return "$YY$MM$DD";
+}
+
+sub out {
+  $string = shift;
+  if ($string =~ /version/i) {
+    #~ print "$0 v$VER-$DATE";
+    print "$0 \"$TITLE\" v$VER-" . version_date_grep();
+  } elsif ($string =~ /help/i) {
+    print "\n- See doc\\README.txt for all useful information.\n";
+    exit;
+  } elsif ($string =~ /author/i) {
+    print "(c)\t2006 pavel skvortsov <pavel.skvortsov\@gmail.com>\n\tufk29.ofk26\n";
+  }
+}
+
+sub datetime {
+  $dateonly = shift;
+  #$now_string = strftime "%a %b %e %H:%M:%S %Y", localtime;
+  $now_string = strftime("%d.%m.%Y %H:%M:%S", localtime(time));
+  print $now_string;
+  if ($dateonly != 1) {
+    print "  ";
+  }
+}
+
