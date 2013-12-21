@@ -10,6 +10,7 @@
 ###
 
 use strict;
+use encoding 'cp1251';
 
 use POSIX qw(strftime);
 # use Net::FTP;
