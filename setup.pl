@@ -27,7 +27,7 @@ my $log_file = "setup.log";
 
 my $NAME = out("version");
 
-# çàêðûòèå ëîã-ôàéëà
+# Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ðµ Ð»Ð¾Ð³-Ñ„Ð°Ð¹Ð»Ð°
 open(LOG, ">>$log_file") or die "! Can't open file $log_file: $!";
 
 print "----------\n";
@@ -37,13 +37,13 @@ log_this("$NAME started!\n");
 
 log_this("$NAME stopped!\n");
 
-# çàêðûòèå ëîã-ôàéëà
+# Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ðµ Ð»Ð¾Ð³-Ñ„Ð°Ð¹Ð»Ð°
 close(LOG) or die "! Can't close file $log_file: $!";
 
 exit 0;
 
 # ====================================
-# ôóíêöèè
+# Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸
 # ====================================
 
 sub datetime {
@@ -51,7 +51,7 @@ sub datetime {
   return $now_string;
 }
 
-# âûâåäåíèå ñòðîêè íà ýêðàí è çàíåñåíèå â ëîã-ôàéë
+# Ð²Ñ‹Ð²ÐµÐ´ÐµÐ½Ð¸Ðµ ÑÑ‚Ñ€Ð¾ÐºÐ¸ Ð½Ð° ÑÐºÑ€Ð°Ð½ Ð¸ Ð·Ð°Ð½ÐµÑÐµÐ½Ð¸Ðµ Ð² Ð»Ð¾Ð³-Ñ„Ð°Ð¹Ð»
 sub log_this {
     my $string = shift;
     my $datetime = datetime();
@@ -59,7 +59,7 @@ sub log_this {
     print STDOUT "$datetime  $string";
 }
 
-# ïðåîáðàçîâàíèå äàòû: dd.mm.yyyy -> yyyymmdd
+# Ð¿Ñ€ÐµÐ¾Ð±Ñ€Ð°Ð·Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð´Ð°Ñ‚Ñ‹: dd.mm.yyyy -> yyyymmdd
 sub version_date_grep {
   my ($DD, $MM, $YY) = split(/\./, $DATE);
   return "$YY$MM$DD";

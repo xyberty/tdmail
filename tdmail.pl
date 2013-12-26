@@ -19,11 +19,11 @@ use File::Path;         # mkpath(), rmtree()
 use File::stat;         # stat()
 
 ###
-### инициализация конфигурации
+### РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРё
 ###
 
-my $config = "tdmail.conf"; # имя конфигурационного файла по умолчанию
-my $ai = 0;                 # счетчик параметров командной строки
+my $config = "tdmail.conf"; # РёРјСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅРѕРіРѕ С„Р°Р№Р»Р° РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+my $ai = 0;                 # СЃС‡РµС‚С‡РёРє РїР°СЂР°РјРµС‚СЂРѕРІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё
 
 foreach (@ARGV) {
   if ($ARGV[$ai] eq "-c") {
@@ -34,7 +34,7 @@ foreach (@ARGV) {
 require "$config";
 
 ###
-### версия программы
+### РІРµСЂСЃРёСЏ РїСЂРѕРіСЂР°РјРјС‹
 ###
 
 my $VER = "0.3b";
@@ -42,7 +42,7 @@ my $DATE = "04.01.2007";
 my $TITLE = "\"summer in may\"";
 
 ###
-### параметры командной строки
+### РїР°СЂР°РјРµС‚СЂС‹ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё
 ###
 
 my ($listing, $keep_files, $silent_mode);
@@ -55,14 +55,14 @@ foreach (@ARGV) {
 undef if $listing == NULL; undef if $keep_files == NULL; undef if $silent_mode == NULL;
 
 ###
-### жесткое определение переменных
+### Р¶РµСЃС‚РєРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ РїРµСЂРµРјРµРЅРЅС‹С…
 ###
 
-# маски файлов, которые необходимо считать текстовыми (regexp)
+# РјР°СЃРєРё С„Р°Р№Р»РѕРІ, РєРѕС‚РѕСЂС‹Рµ РЅРµРѕР±С…РѕРґРёРјРѕ СЃС‡РёС‚Р°С‚СЊ С‚РµРєСЃС‚РѕРІС‹РјРё (regexp)
 #$ascii_mask = qr/(\.txt)|(\.v$ofk)|(\.i$ofk)|(\.r$ofk)|(\.s$ofk)|(pismo)/is;
 my $ascii_mask = qr/(\.txt)|(\.r$ofk)|(\.s$ofk)|(pismo)/is;
 
-# переназначение входящих/исходящих путей на ftp/локально (для ведения архива)
+# РїРµСЂРµРЅР°Р·РЅР°С‡РµРЅРёРµ РІС…РѕРґСЏС‰РёС…/РёСЃС…РѕРґСЏС‰РёС… РїСѓС‚РµР№ РЅР° ftp/Р»РѕРєР°Р»СЊРЅРѕ (РґР»СЏ РІРµРґРµРЅРёСЏ Р°СЂС…РёРІР°)
 %replace = (
   'es_out' => 'es_in',
   'outgoing' => 'pm_in',
@@ -77,7 +77,7 @@ my $ascii_mask = qr/(\.txt)|(\.r$ofk)|(\.s$ofk)|(pismo)/is;
 #);
 
 ###
-### начало работы
+### РЅР°С‡Р°Р»Рѕ СЂР°Р±РѕС‚С‹
 ###
 
 my $NAME = out("version");
@@ -88,31 +88,31 @@ print LOG "----------\n";
 
 log_this("$NAME started!\n");
 
-# если используется альтернативный конфигурационный файл
+# РµСЃР»Рё РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅС‹Р№ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р»
 if ($config ne 'tdmail.conf') { log_this("Using alternative configuration: $config.\n"); }
 
-# если задан параметр '-list' в командной строке (только список файлов)
+# РµСЃР»Рё Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ '-list' РІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРµ (С‚РѕР»СЊРєРѕ СЃРїРёСЃРѕРє С„Р°Р№Р»РѕРІ)
 if (($listing) and ($listing == 1)) { log_this("We will get file listing only.\n"); }
 
-# если задан параметр '-nosignal' в командной строке (отключить оповещение)
+# РµСЃР»Рё Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ '-nosignal' РІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРµ (РѕС‚РєР»СЋС‡РёС‚СЊ РѕРїРѕРІРµС‰РµРЅРёРµ)
 if (($silent_mode) and ($silent_mode == 1)) { log_this("Notify function disabled.\n"); }
 
-# подключение к серверу
+# РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє СЃРµСЂРІРµСЂСѓ
 ftp_connect();
 
-$, = "\n";  # разделитель при выводе массива на экран
+$, = "\n";  # СЂР°Р·РґРµР»РёС‚РµР»СЊ РїСЂРё РІС‹РІРѕРґРµ РјР°СЃСЃРёРІР° РЅР° СЌРєСЂР°РЅ
 
-# получение списка директорий на сервере в массив
+# РїРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° РґРёСЂРµРєС‚РѕСЂРёР№ РЅР° СЃРµСЂРІРµСЂРµ РІ РјР°СЃСЃРёРІ
 #log_this("Getting directory listing...\n");
 @remotedirs = $ftp->ls(); # or die "! Cannot get a directory listing ", $ftp->message;
 #~ print $ftp->message;
 
 #
-# получение и копирование файлов в архив ($root_dir)
+# РїРѕР»СѓС‡РµРЅРёРµ Рё РєРѕРїРёСЂРѕРІР°РЅРёРµ С„Р°Р№Р»РѕРІ РІ Р°СЂС…РёРІ ($root_dir)
 #
 
-# маски имен директорий, которые нужно пропускать, при выводе
-# списка файлов и скачивании
+# РјР°СЃРєРё РёРјРµРЅ РґРёСЂРµРєС‚РѕСЂРёР№, РєРѕС‚РѕСЂС‹Рµ РЅСѓР¶РЅРѕ РїСЂРѕРїСѓСЃРєР°С‚СЊ, РїСЂРё РІС‹РІРѕРґРµ
+# СЃРїРёСЃРєР° С„Р°Р№Р»РѕРІ Рё СЃРєР°С‡РёРІР°РЅРёРё
 @remotedirs_in = grep (!/(^in)|(\_in)|(avp)|(drweb)|(bank)|(sed_out)/, @remotedirs);
 #@remotedirs_in = grep (!/(^in)|(\_in)|(avp)|(drweb)|(sed_out)/, @remotedirs);
 
@@ -122,7 +122,7 @@ log_this("* RECEIVING\n");
 
 chdir("$mail_dir");
 foreach my $localdir (@remotedirs_in) {
-  local $, = ", ";  # разделитель элементов массива
+  local $, = ", ";  # СЂР°Р·РґРµР»РёС‚РµР»СЊ СЌР»РµРјРµРЅС‚РѕРІ РјР°СЃСЃРёРІР°
   
   log_this("\\$localdir\n");
   $ftp->cwd($localdir);
@@ -131,18 +131,18 @@ foreach my $localdir (@remotedirs_in) {
   chdir("$localdir");
 
   if ((($listing) and ($listing != 1)) or (!$listing)) {
-    # для получения справочников БИК РФ получение файлов немного иное
+    # РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃРїСЂР°РІРѕС‡РЅРёРєРѕРІ Р‘РРљ Р Р¤ РїРѕР»СѓС‡РµРЅРёРµ С„Р°Р№Р»РѕРІ РЅРµРјРЅРѕРіРѕ РёРЅРѕРµ
     # if ($localdir eq 'bank') {
-      # if (get_bank_files(@files) eq "0") {  # если имена файлов разные
+      # if (get_bank_files(@files) eq "0") {  # РµСЃР»Рё РёРјРµРЅР° С„Р°Р№Р»РѕРІ СЂР°Р·РЅС‹Рµ
         # foreach my $file (@files) {
-          # # скачивание
+          # # СЃРєР°С‡РёРІР°РЅРёРµ
           # my $filesize = round($ftp->size($file));
           # log_this("$file ($filesize KB) -> $mail_dir\\$localdir\\$file\n");
           # set_transfer_mode($file);
           # $ftp->get($file, "$mail_dir\\$localdir\\$file");
           # $ftp->message;
           
-          # # копирование в архив
+          # # РєРѕРїРёСЂРѕРІР°РЅРёРµ РІ Р°СЂС…РёРІ
           # my $path = "$root_dir\\$localdir\\$today_dir";
           # if (!-d $path) { log_this("Making path $path\n"); mkpath($path); }
           
@@ -159,7 +159,7 @@ foreach my $localdir (@remotedirs_in) {
         my $filesize = round($ftp->size($file));
         #log_this("$host\\$localdir\\$file ($filesize KB) -> $mail_dir\\$localdir\\$file\n");
         log_this("$file ($filesize KB) -> $mail_dir\\$localdir\\$file\n");
-#      $files_mdtm->{"$file"} = "$ftp->mdtm($file)"; # добавление значений в хэш
+#      $files_mdtm->{"$file"} = "$ftp->mdtm($file)"; # РґРѕР±Р°РІР»РµРЅРёРµ Р·РЅР°С‡РµРЅРёР№ РІ С…СЌС€
         set_transfer_mode($file);
         $ftp->get($file, "$mail_dir\\$localdir\\$file");
         $ftp->message;
@@ -186,7 +186,7 @@ foreach my $localdir (@remotedirs_in) {
           log_this("File $path\\$file already exists\n");
         }
         
-        # копирование отчетов
+        # РєРѕРїРёСЂРѕРІР°РЅРёРµ РѕС‚С‡РµС‚РѕРІ
         if (($file =~ /.+\.r$ofk/i) or ($file =~ /14\d{2}[\d\w]\d$ofk\.arj/i)) {
           if (!-f "$report_dir\\$file") {
             log_this("$file -> $report_dir\\$file\n");
@@ -195,13 +195,13 @@ foreach my $localdir (@remotedirs_in) {
             log_this("File $report_dir\\$file already exists\n");
           }
 #        } elsif ($file =~ /\d{4}[\d\w]\d$ofk\.arj/i) {
-#        # копирование квитанции на заявку
+#        # РєРѕРїРёСЂРѕРІР°РЅРёРµ РєРІРёС‚Р°РЅС†РёРё РЅР° Р·Р°СЏРІРєСѓ
           
         }
         
         if ((($keep_files) and ($keep_files != 1)) or (!$keep_files)) {
-          $ftp->delete($file);  # если в командной строке не указан параметр -nodel,
-          $ftp->message;        # файлы с ftp удаляются; иначе - нет.
+          $ftp->delete($file);  # РµСЃР»Рё РІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРµ РЅРµ СѓРєР°Р·Р°РЅ РїР°СЂР°РјРµС‚СЂ -nodel,
+          $ftp->message;        # С„Р°Р№Р»С‹ СЃ ftp СѓРґР°Р»СЏСЋС‚СЃСЏ; РёРЅР°С‡Рµ - РЅРµС‚.
         }
       }
     # }
@@ -210,9 +210,9 @@ foreach my $localdir (@remotedirs_in) {
     print @files; print "\n";
   }
 
-  # сигнализация о принятых файлах :-)
+  # СЃРёРіРЅР°Р»РёР·Р°С†РёСЏ Рѕ РїСЂРёРЅСЏС‚С‹С… С„Р°Р№Р»Р°С… :-)
   if ((($silent_mode) and ($silent_mode != 1)) or (!$silent_mode)) {
-    my $signal_string = "В директории \"T:\\$localdir\" появились новые файлы!";
+    my $signal_string = "Р’ РґРёСЂРµРєС‚РѕСЂРёРё \"T:\\$localdir\" РїРѕСЏРІРёР»РёСЃСЊ РЅРѕРІС‹Рµ С„Р°Р№Р»С‹!";
     my $signal_pc;
     if ($localdir eq 'es_out') {
       $signal_pc = "buh-1";
@@ -233,7 +233,7 @@ foreach my $localdir (@remotedirs_in) {
 }
 
 #
-# отправка и копирование файлов в архив ($root_dir)
+# РѕС‚РїСЂР°РІРєР° Рё РєРѕРїРёСЂРѕРІР°РЅРёРµ С„Р°Р№Р»РѕРІ РІ Р°СЂС…РёРІ ($root_dir)
 #
 
 @remotedirs_out = grep (!/(^out)|(\_out)|(avp)|(drweb)|(bank)/, @remotedirs);
@@ -250,7 +250,7 @@ foreach my $localdir (@remotedirs_out) {
     print @files; if ($#files != -1) { print "\n"; }
     if ($#files != -1) {
       chdir("$localdir");
-      # перемещение в директорию для загрузки
+      # РїРµСЂРµРјРµС‰РµРЅРёРµ РІ РґРёСЂРµРєС‚РѕСЂРёСЋ РґР»СЏ Р·Р°РіСЂСѓР·РєРё
       #$ftp->cwd($remotedir);
 
       my $path = "$root_dir\\$replace{$localdir}\\$today_dir";
@@ -278,19 +278,19 @@ foreach my $localdir (@remotedirs_out) {
   #~ }
 }
 
-# отключение от сервера
+# РѕС‚РєР»СЋС‡РµРЅРёРµ РѕС‚ СЃРµСЂРІРµСЂР°
 ftp_disconnect();
 
 log_this("$NAME stopped!\n");
 
-# закрытие лог-файла
+# Р·Р°РєСЂС‹С‚РёРµ Р»РѕРі-С„Р°Р№Р»Р°
 close(LOG) or die "! Can't close file $log_file: $!";
 
-# выход!
+# РІС‹С…РѕРґ!
 exit 0;
 
 # ====================================
-# переопределения
+# РїРµСЂРµРѕРїСЂРµРґРµР»РµРЅРёСЏ
 # ====================================
 
 $SIG{__DIE__} = sub {
@@ -303,7 +303,7 @@ $SIG{__DIE__} = sub {
 };
 
 # ====================================
-# функции и процедуры
+# С„СѓРЅРєС†РёРё Рё РїСЂРѕС†РµРґСѓСЂС‹
 # ====================================
 
 sub ftp_connect {
@@ -330,7 +330,7 @@ sub ftp_disconnect {
   #datetime(1); print "  Logout.\n";
 }
 
-# получение ОБНОВЛЕННОГО справочника банков
+# РїРѕР»СѓС‡РµРЅРёРµ РћР‘РќРћР’Р›Р•РќРќРћР“Рћ СЃРїСЂР°РІРѕС‡РЅРёРєР° Р±Р°РЅРєРѕРІ
 sub get_bank_files {
   my @remote_files = shift;
   my @local_files = get_dir_contents("$mail_dir\\bank");
@@ -341,7 +341,7 @@ sub get_bank_files {
     foreach my $l_file (@local_files) {
       if (($r_file =~ /.+\.dbf/i) and ($l_file =~ /.+\.dbf/i)) {
         print "$r_file - $l_file - fuck you!\n";
-        if ($r_file eq $l_file) { # если имена файлов одинаковы
+        if ($r_file eq $l_file) { # РµСЃР»Рё РёРјРµРЅР° С„Р°Р№Р»РѕРІ РѕРґРёРЅР°РєРѕРІС‹
           print "aaa\n"; $value = "1"; last; last;
         } else {
           print "bbb\n"; $value = "0"; last; last;
@@ -355,16 +355,16 @@ sub get_bank_files {
 sub get_dir_contents {
   $dir = shift;
   opendir(DIR, $dir) or die "! Cannot open dir $dir: $!";
-  @dirlist = grep(!/^\.+/, readdir(DIR));   # получаем список директорий
+  @dirlist = grep(!/^\.+/, readdir(DIR));   # РїРѕР»СѓС‡Р°РµРј СЃРїРёСЃРѕРє РґРёСЂРµРєС‚РѕСЂРёР№
   #~ @dirlist = grep { !/^\./ && -d "$_" } readdir(DIR);
   closedir(DIR);
   return @dirlist;
 }
 
-# получение (скачивание) файлов из указанной до вызова функции директории на ftp
+# РїРѕР»СѓС‡РµРЅРёРµ (СЃРєР°С‡РёРІР°РЅРёРµ) С„Р°Р№Р»РѕРІ РёР· СѓРєР°Р·Р°РЅРЅРѕР№ РґРѕ РІС‹Р·РѕРІР° С„СѓРЅРєС†РёРё РґРёСЂРµРєС‚РѕСЂРёРё РЅР° ftp
 # ($ftp->cwd($dir))
-#   параметр 1 - удалять ли файлы с сервера (0, 1);
-#   параметр 2 - директория на сервере и локальная.
+#   РїР°СЂР°РјРµС‚СЂ 1 - СѓРґР°Р»СЏС‚СЊ Р»Рё С„Р°Р№Р»С‹ СЃ СЃРµСЂРІРµСЂР° (0, 1);
+#   РїР°СЂР°РјРµС‚СЂ 2 - РґРёСЂРµРєС‚РѕСЂРёСЏ РЅР° СЃРµСЂРІРµСЂРµ Рё Р»РѕРєР°Р»СЊРЅР°СЏ.
 sub get_files {
   my $delete_file = shift;
   my $_dir = shift;
@@ -378,14 +378,14 @@ sub get_files {
     set_transfer_mode($file);
     $ftp->get($file, "$mail_dir\\$_dir\\$file");
     $ftp->message;
-    if ($delete_file == 1) {    # если в качестве параметра при вызове функции передана "1",
-      $ftp->delete($file);      # файлы с ftp удаляются; иначе - нет.
+    if ($delete_file == 1) {    # РµСЃР»Рё РІ РєР°С‡РµСЃС‚РІРµ РїР°СЂР°РјРµС‚СЂР° РїСЂРё РІС‹Р·РѕРІРµ С„СѓРЅРєС†РёРё РїРµСЂРµРґР°РЅР° "1",
+      $ftp->delete($file);      # С„Р°Р№Р»С‹ СЃ ftp СѓРґР°Р»СЏСЋС‚СЃСЏ; РёРЅР°С‡Рµ - РЅРµС‚.
       $ftp->message;
     }
   }
 }
 
-# установка режима передачи файлов в зависимости от расширения
+# СѓСЃС‚Р°РЅРѕРІРєР° СЂРµР¶РёРјР° РїРµСЂРµРґР°С‡Рё С„Р°Р№Р»РѕРІ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЂР°СЃС€РёСЂРµРЅРёСЏ
 # (binary, ascii)
 sub set_transfer_mode {
   $ifile = shift;
@@ -396,7 +396,7 @@ sub set_transfer_mode {
     }
 }
 
-# преобразование: Байты -> кБайты; округление до десятых
+# РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ: Р‘Р°Р№С‚С‹ -> РєР‘Р°Р№С‚С‹; РѕРєСЂСѓРіР»РµРЅРёРµ РґРѕ РґРµСЃСЏС‚С‹С…
 sub round {
   $number = shift;
   $number = $number / 1024;
@@ -404,7 +404,7 @@ sub round {
   return $rounded;
 }
 
-# преобразование даты: dd.mm.yyyy -> yyyymmdd
+# РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РґР°С‚С‹: dd.mm.yyyy -> yyyymmdd
 sub version_date_grep {
   my ($DD, $MM, $YY) = split(/\./, $DATE);
   return "$YY$MM$DD";
@@ -438,7 +438,7 @@ sub datetime_ {
   return $now_string;
 }
 
-# выведение строки на экран и занесение в лог-файл
+# РІС‹РІРµРґРµРЅРёРµ СЃС‚СЂРѕРєРё РЅР° СЌРєСЂР°РЅ Рё Р·Р°РЅРµСЃРµРЅРёРµ РІ Р»РѕРі-С„Р°Р№Р»
 sub log_this {
 #  shift;
 #  if ($_) {
@@ -451,7 +451,7 @@ sub log_this {
 #  }
 }
 
-# аварийно закрыть программу, предварительно занеся информацию об ошибке в лог-файл
+# Р°РІР°СЂРёР№РЅРѕ Р·Р°РєСЂС‹С‚СЊ РїСЂРѕРіСЂР°РјРјСѓ, РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕ Р·Р°РЅРµСЃСЏ РёРЅС„РѕСЂРјР°С†РёСЋ РѕР± РѕС€РёР±РєРµ РІ Р»РѕРі-С„Р°Р№Р»
 sub die_log {
   my $string = shift;
   my $datetime = datetime_();
